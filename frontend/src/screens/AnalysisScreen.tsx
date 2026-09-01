@@ -1,5 +1,5 @@
 import { ScreenState } from '../App';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Loader2, AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 import { predictImage, PredictionResult } from '../services/api';
 import { Button } from '../components/Button';
@@ -13,25 +13,28 @@ interface Props {
 export function AnalysisScreen({ onNavigate, selectedImage, onPredictionComplete }: Props) {
   const [progress, setProgress] = useState(10);
   const [error, setError] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>('https://images.unsplash.com/photo-1620574387735-3624d75b2dbc?auto=format&fit=crop&q=80&w=1000');
 
-  useEffect(() => {
-    let url = previewUrl;
+  // Generate object URL for captured image blob safely
+  const previewUrl = useMemo(() => {
     if (selectedImage) {
-      url = URL.createObjectURL(selectedImage);
-      setPreviewUrl(url);
+      return URL.createObjectURL(selectedImage);
     }
+    return 'https://images.unsplash.com/photo-1620574387735-3624d75b2dbc?auto=format&fit=crop&q=80&w=1000';
+  }, [selectedImage]);
+
+  // Clean up ObjectURL on unmount or when image changes
+  useEffect(() => {
     return () => {
-      if (selectedImage && url.startsWith('blob:')) {
-        URL.revokeObjectURL(url);
+      if (selectedImage && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
       }
     };
-  }, [selectedImage]);
+  }, [selectedImage, previewUrl]);
 
   useEffect(() => {
     let isMounted = true;
 
-    // Smooth visual progress ticker while waiting for backend
+    // Smooth visual progress ticker while waiting for backend response
     const progressTimer = setInterval(() => {
       setProgress((p) => {
         if (p >= 85) return 85; // Pause at 85% until backend returns
@@ -88,7 +91,7 @@ export function AnalysisScreen({ onNavigate, selectedImage, onPredictionComplete
         
         <div className="px-6 flex-1 flex flex-col items-center">
           {/* Image Container */}
-          <div className="w-full aspect-[4/5] rounded-3xl overflow-hidden relative shadow-lg">
+          <div className="w-full aspect-[4/5] rounded-3xl overflow-hidden relative shadow-lg border border-border-main/50">
             <div 
               className="absolute inset-0 bg-cover bg-center transition-all duration-700"
               style={{ backgroundImage: `url("${previewUrl}")` }}
