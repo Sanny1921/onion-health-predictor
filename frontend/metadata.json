@@ -1,0 +1,10 @@
+{
+  "name": "Onion Quality Assessment",
+  "description": "AI-powered onion inspection and grading system for agricultural procurement centers.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
